@@ -2,65 +2,207 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>hmm...</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #space {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 5px rgba(255,0,0,0.6));
+      }
+      50% {
+        transform: scale(1.3);
+        filter: drop-shadow(0 0 25px rgba(255,0,0,1));
+      }
+    }
+
+    #heart {
+      animation: pulseGlow 1.5s infinite;
+      transition: all 1s ease;
+    }
+
+    #text {
+      transition: opacity 0.5s ease;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-900 text-white overflow-hidden">
+<body class="text-white">
 
-<div class="flex items-center justify-center h-screen text-center px-6">
+<canvas id="space"></canvas>
+
+<div class="flex items-center justify-center h-screen text-center px-6 relative z-10">
   <div>
-    
-    <!-- Heart -->
-    <div id="heart"
-      class="mx-auto mb-8 text-2xl transition-all duration-700">
-      ❤️
-    </div>
+    <div id="heart" class="mx-auto mb-8 text-3xl">❤️</div>
 
-    <!-- Text -->
     <p id="text"
-      class="text-lg text-gray-300 max-w-md min-h-[60px] whitespace-pre-line">
+      class="text-base sm:text-lg md:text-xl text-gray-300 max-w-md min-h-[60px] whitespace-pre-line">
       bentar ya...
     </p>
-
   </div>
 </div>
 
 <script>
+// =====================
+// 🌌 GALAXY ENGINE
+// =====================
+const canvas = document.getElementById("space");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let stars = [];
+let meteors = [];
+
+// ⭐ generate stars
+for (let i = 0; i < 250; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 1.5,
+    speed: Math.random() * 0.4 + 0.05,
+    opacity: Math.random()
+  });
+}
+
+// 🌠 meteor
+function createMeteor() {
+  meteors.push({
+    x: Math.random() * canvas.width,
+    y: -50,
+    vx: -4 - Math.random() * 2,
+    vy: 6 + Math.random() * 2,
+    life: 0,
+    maxLife: 60
+  });
+}
+
+// 🎬 animation loop
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // ⭐ stars
+  stars.forEach(s => {
+    s.y += s.speed;
+
+    // twinkle
+    s.opacity += (Math.random() - 0.5) * 0.05;
+    s.opacity = Math.max(0.2, Math.min(1, s.opacity));
+
+    if (s.y > canvas.height) {
+      s.y = 0;
+      s.x = Math.random() * canvas.width;
+    }
+
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+    ctx.fill();
+  });
+
+  // 🌠 meteors
+  meteors.forEach((m, index) => {
+    m.x += m.vx;
+    m.y += m.vy;
+    m.life++;
+
+    const grad = ctx.createLinearGradient(
+      m.x, m.y,
+      m.x - m.vx * 10,
+      m.y - m.vy * 10
+    );
+
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(m.x - m.vx * 10, m.y - m.vy * 10);
+    ctx.stroke();
+
+    if (m.life > m.maxLife) {
+      meteors.splice(index, 1);
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+
+setInterval(createMeteor, 2500);
+animate();
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// =====================
+// 💬 TEXT ENGINE
+// =====================
 const texts = [
-  "Hallo kak Rufaidah...",
-  "Apa kabar? Semoga sehat selalu yaa 😊",
-  "Gimana pekerjaannya? Semoga lancar terus yaa 🙏",
+  "Hallo kak Ru...",
+  "Kami kembali lagi untuk semangatin kak Ru yang lelah setelah kerja di sana 😊",
+  "Backgroundnya galaksinya keren kan?, semoga suka yaa 😁",
   "Jadi gini...",
-  "Kenapa ayam nyebrang jalan?",
-  "Karena mau ke seberang… ya masa ke Indomaret 😐",
-  "Hewan apa yang deket sama teman-temannya?",
-  "A Crab 🦀",
-  "Kenapa air mata warnanya bening?",
-  "Karena kalau warnanya ijo, namanya air matcha 😂",
-  "Siapa pemain bola yang beratnya 3 kg?",
-  "Bambang Tabung Gas 😆",
-  "Kesenian apa yang bisa dilakukan sama nasabah bank?",
-  "Tari tunai 😁",
-  "Oke, itu aja dulu yaa...",
-  "Semoga bisa bikin senyum-senyum sendiri yaa 😄"
+  "Aku ada pertanyaan buat kak Ru, tapi jangan dijawab yaa, ini cuma buat seneng-seneng aja 😄",
+  "Siapa nama orang meksiko yang baru aja kehilangan mobilnya?",
+  "Carlost...🚗💨",
+  "Kak Ru kan pandai nih",
+  "Gimana caranya bikin air jadi ngantuk?",
+  "Tinggal direbus tunggu sampai mendidih, airnya nguap 😆",
+  "Apa bahasa Thailandnya bapak ibu dan anak?",
+  "Leng-khaaap 👨‍👩‍👧‍👦",
+  "Cukup kali yaa jokesnya, hehe... ",
+  "Ada sebuah pepatah mengatakan...",
+  "Kalau hidup kamu diselimuti masalah, itu tandanya kamu manusia",
+  "Kalau kamu diselimuti wijen, berarti tandanya kamu onde-onde",
+  "Tetap semangat ya kak Ru, jangan lupa istirahat yang cukup, dan jangan terlalu dipikirin kerjaan di sana, yang penting kamu sehat dan bahagia 😊",
+  "Berat sama dipikul, ringan sama digidaw... 😎",
 ];
 
 let i = 0;
 let running = true;
 
-// typing effect (FIX spasi aman)
-function typeText(text, element, speed = 35, callback) {
+const textEl = document.getElementById("text");
+const heart = document.getElementById("heart");
+
+// typing natural
+function typeText(text, callback) {
   let index = 0;
-  element.textContent = ""; // pakai textContent biar lebih aman
+  textEl.textContent = "";
 
   function typing() {
     if (index < text.length) {
-      element.textContent += text[index]; // karakter by karakter
+      textEl.textContent += text[index];
+
+      let delay = 30 + Math.random() * 40;
+      if ([".", ",", "?", "!"].includes(text[index])) delay += 200;
+
       index++;
-      setTimeout(typing, speed);
+      setTimeout(typing, delay);
     } else {
-      if (callback) callback();
+      callback && callback();
     }
   }
 
@@ -70,28 +212,34 @@ function typeText(text, element, speed = 35, callback) {
 function run() {
   if (!running) return;
 
-  const textEl = document.getElementById("text");
-  const heart = document.getElementById("heart");
-
   if (i >= texts.length) {
     running = false;
 
-    setTimeout(() => {
-      heart.style.transition = "all 1.5s ease";
-      heart.style.transform = "scale(8)";
-    }, 500);
+    textEl.style.opacity = "0";
 
+    setTimeout(() => {
+      textEl.textContent = "Take care ya 😊";
+      textEl.style.opacity = "1";
+      textEl.style.fontSize = "24px";
+    }, 1000);
+
+    heart.style.transform = "scale(8)";
     return;
   }
 
-  // animasi hati
   heart.style.transform = `scale(${1 + i * 0.15})`;
 
-  // typing
-  typeText(texts[i], textEl, 35, () => {
-    i++;
-    setTimeout(run, 2000); // lebih santai
-  });
+  textEl.style.opacity = "0";
+
+  setTimeout(() => {
+    textEl.style.opacity = "1";
+
+    typeText(texts[i], () => {
+      i++;
+      setTimeout(run, 2000);
+    });
+
+  }, 300);
 }
 
 // start
